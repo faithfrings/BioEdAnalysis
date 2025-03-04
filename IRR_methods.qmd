@@ -1,0 +1,58 @@
+---
+title: "IRR methods"
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+## Using `irr` package
+
+Documentation:
+
+-   [irr package](https://cran.r-project.org/web/packages/irr/irr.pdf)
+
+-   [kappa2 function](https://www.rdocumentation.org/packages/irr/versions/0.84/topics/kappa2)
+
+```{r}
+library(tibble)
+library(irr)
+library(knitr)
+library(kableExtra)
+
+# Reading in csv files
+coder1 <- read.csv("Coder1.csv", header = TRUE)
+coder2 <- read.csv("Coder2.csv", header = TRUE)
+
+# Making a vector of column names (both csvs must have the same column names) 
+column_names <- colnames(coder1) 
+
+# Creating an empty list to store results
+kappa_results <- list()
+
+# Looping through each column and computing Cohen's Kappa
+for (col in column_names) { #col variable will iterate through each column at a time
+
+  temp_data <- cbind(coder1[[col]], coder2[[col]]) # Combining ratings for each specific code from both coders in a two-column matrix
+
+  colnames(temp_data) <- c("Coder1", "Coder2")  # Ensuring the column names are "Coder 1" and "Coder 2" for running kappa2
+  temp_data <- as.data.frame(temp_data)  # Converting to data frame for running kappa2
+  
+  # Computing Cohen's Kappa
+  kappa_value <- kappa2(temp_data, weight = "unweighted")$value #"unweighted" is default
+  
+  # Storing results from loop in the list
+  kappa_results[[col]] <- kappa_value
+}
+
+# Converting list to a data frame to view results
+kappa_df <- tibble(Code = names(kappa_results), Kappa = unlist(kappa_results))
+
+print(kappa_df)
+
+#creating table of results
+kappa_table <- kable(kappa_df, format = "html") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover"))
+kappa_table
+
+```
